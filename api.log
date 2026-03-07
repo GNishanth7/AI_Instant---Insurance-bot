@@ -1,0 +1,15 @@
+INFO:     127.0.0.1:56722 - "GET /plans/4d_health_5 HTTP/1.1" 200 OK
+bin C:\Users\nisha\AppData\Local\Programs\Python\Python311\Lib\site-packages\bitsandbytes\libbitsandbytes_cuda121.dll
+INFO:     127.0.0.1:56723 - "POST /chat HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56725 - "POST /chat HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51436 - "GET /plans HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53804 - "GET /plans/4d_health_1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53804 - "GET /plans/4d_health_1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60057 - "POST /chat HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60057 - "POST /chat HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60057 - "POST /chat HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60057 - "POST /chat HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49781 - "POST /chat HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53156 - "GET /plans HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53156 - "GET /plans/4d_health_2 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53156 - "GET /plans/4d_health_2 HTTP/1.1" 200 OK

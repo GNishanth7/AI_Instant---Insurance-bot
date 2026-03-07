@@ -22,6 +22,7 @@ STARTER_QUICK_REPLIES = [
     "Does my insurance cover MRI?",
     "What is the dental cover?",
     "I want to file a claim for physiotherapy",
+    "I want to book a physiotherapy appointment",
 ]
 
 TOP_K_RETRIEVAL = 5
@@ -31,10 +32,16 @@ SESSION_TTL_SECONDS = 60 * 30
 INDEX_VERSION = 3
 
 EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "all-MiniLM-L6-v2")
-API_BASE_URL = os.getenv("API_BASE_URL", "http://127.0.0.1:8000")
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
+GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
+GEMINI_TEMPERATURE = float(os.getenv("GEMINI_TEMPERATURE", "0"))
+GEMINI_MAX_OUTPUT_TOKENS = int(os.getenv("GEMINI_MAX_OUTPUT_TOKENS", "240"))
+ENABLE_GEMINI_ANSWER_GENERATION = os.getenv(
+    "ENABLE_GEMINI_ANSWER_GENERATION",
+    "true",
+).strip().lower() not in {"0", "false", "no"}
 BACKEND_HOST = os.getenv("BACKEND_HOST", "0.0.0.0")
 BACKEND_PORT = int(os.getenv("BACKEND_PORT", "8000"))
-UI_PORT = int(os.getenv("UI_PORT", "8501"))
 
 NOT_FOUND_MESSAGE = (
     "I could not find this information in the selected policy data. Please contact HR directly."
@@ -51,6 +58,18 @@ CLAIM_INTENT_KEYWORDS = [
     "i want to claim",
     "how do i claim",
     "make a claim",
+]
+
+APPOINTMENT_INTENT_KEYWORDS = [
+    "book an appointment",
+    "book appointment",
+    "schedule an appointment",
+    "schedule appointment",
+    "book a consultation",
+    "schedule a consultation",
+    "arrange an appointment",
+    "book a visit",
+    "book physiotherapy",
 ]
 
 PROMPT_INJECTION_PATTERNS = [

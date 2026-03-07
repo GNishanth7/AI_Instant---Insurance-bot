@@ -22,6 +22,7 @@ class PlanSummary(BaseModel):
 
 class PlanDetail(PlanSummary):
     vector_enabled: bool
+    ai_generation_enabled: bool
 
 
 class SourceItem(BaseModel):
@@ -44,8 +45,11 @@ class ChatResponse(BaseModel):
     citation: str = ""
     sources: list[SourceItem] = Field(default_factory=list)
     claim_summary: dict[str, Any] | None = None
+    appointment_summary: dict[str, Any] | None = None
     disclaimer: str = ""
     quick_replies: list[str] = Field(default_factory=list)
+    input_mode: str = "text"
+    input_context: str = ""
 
 
 class RebuildResponse(BaseModel):

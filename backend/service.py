@@ -19,6 +19,11 @@ from config import (
 from core.ingestion import discover_plan_files, load_plan_chunks, summarize_plan
 from core.llm import PolicyAssistantLLM
 from core.retriever import PlanRetriever
+from workflows.appointment_workflow import (
+    handle_appointment_turn,
+    initial_appointment_state,
+    is_appointment_intent,
+)
 from workflows.claim_workflow import handle_claim_turn, initial_claim_state, is_claim_intent
 
 
@@ -35,6 +40,7 @@ class ChatSession:
     session_id: str
     plan_id: str
     claim_state: dict = field(default_factory=initial_claim_state)
+    appointment_state: dict = field(default_factory=initial_appointment_state)
     last_request_at: float = 0.0
     updated_at: float = field(default_factory=time.time)
 
@@ -61,6 +67,7 @@ class PolicyBackendService:
             return {
                 **summary,
                 "vector_enabled": bool(stats["vector_enabled"]),
+                "ai_generation_enabled": self._assistant.ai_generation_enabled,
             }
 
     def rebuild_plan_index(self, plan_id: str) -> dict:
@@ -93,13 +100,36 @@ class PolicyBackendService:
             self._log_suspicious_input(cleaned_message)
 
             retriever = self._get_retriever(plan_id)
-            if session.claim_state.get("active") or is_claim_intent(cleaned_message):
+            controls = self._response_controls_for_session(session)
+            if session.appointment_state.get("active") or is_appointment_intent(cleaned_message):
+                result = handle_appointment_turn(
+                    cleaned_message,
+                    session.appointment_state,
+                    retriever,
+                    self._assistant,
+                )
+                controls = self._response_controls_for_session(session)
+                response = {
+                    "session_id": session.session_id,
+                    "plan_id": plan_id,
+                    "content": result.message,
+                    "citation": result.citation,
+                    "sources": result.sources,
+                    "claim_summary": None,
+                    "appointment_summary": result.appointment_summary,
+                    "disclaimer": ANSWER_DISCLAIMER if result.citation else "",
+                    "quick_replies": controls["quick_replies"],
+                    "input_mode": controls["input_mode"],
+                    "input_context": controls["input_context"],
+                }
+            elif session.claim_state.get("active") or is_claim_intent(cleaned_message):
                 result = handle_claim_turn(
                     cleaned_message,
                     session.claim_state,
                     retriever,
                     self._assistant,
                 )
+                controls = self._response_controls_for_session(session)
                 response = {
                     "session_id": session.session_id,
                     "plan_id": plan_id,
@@ -107,8 +137,11 @@ class PolicyBackendService:
                     "citation": result.citation,
                     "sources": result.sources,
                     "claim_summary": result.claim_summary,
+                    "appointment_summary": None,
                     "disclaimer": ANSWER_DISCLAIMER if result.citation else "",
-                    "quick_replies": self._quick_replies_for_session(session),
+                    "quick_replies": controls["quick_replies"],
+                    "input_mode": controls["input_mode"],
+                    "input_context": controls["input_context"],
                 }
             else:
                 retrieval_results = retriever.retrieve(cleaned_message)
@@ -125,8 +158,11 @@ class PolicyBackendService:
                     "citation": answer.citation,
                     "sources": answer.sources,
                     "claim_summary": None,
+                    "appointment_summary": None,
                     "disclaimer": answer.disclaimer if answer.citation else "",
-                    "quick_replies": list(STARTER_QUICK_REPLIES),
+                    "quick_replies": controls["quick_replies"],
+                    "input_mode": controls["input_mode"],
+                    "input_context": controls["input_context"],
                 }
 
             session.last_request_at = time.time()
@@ -176,6 +212,7 @@ class PolicyBackendService:
             if session.plan_id != plan_id:
                 session.plan_id = plan_id
                 session.claim_state = initial_claim_state()
+                session.appointment_state = initial_appointment_state()
                 session.last_request_at = 0.0
             return session
 
@@ -208,17 +245,92 @@ class PolicyBackendService:
             print(f"[suspicious-input] {message}")
 
     @staticmethod
-    def _quick_replies_for_session(session: ChatSession) -> list[str]:
+    def _response_controls_for_session(session: ChatSession) -> dict[str, str | list[str]]:
+        if session.appointment_state.get("active"):
+            step = session.appointment_state.get("step", "idle")
+            if step == "awaiting_treatment":
+                return {
+                    "quick_replies": ["Physiotherapy", "MRI", "Dental", "Cancel"],
+                    "input_mode": "text",
+                    "input_context": "appointment_type",
+                }
+            if step == "awaiting_date_of_birth":
+                return {
+                    "quick_replies": ["Cancel"],
+                    "input_mode": "date",
+                    "input_context": "date_of_birth",
+                }
+            if step == "awaiting_mode":
+                return {
+                    "quick_replies": ["In-person", "Virtual", "No preference", "Cancel"],
+                    "input_mode": "text",
+                    "input_context": "appointment_mode",
+                }
+            if step == "awaiting_time_window":
+                return {
+                    "quick_replies": ["Morning", "Afternoon", "Evening", "Cancel"],
+                    "input_mode": "text",
+                    "input_context": "time_window",
+                }
+            if step == "awaiting_confirmation":
+                return {
+                    "quick_replies": ["Yes", "No"],
+                    "input_mode": "text",
+                    "input_context": "confirmation",
+                }
+            if step == "awaiting_date":
+                return {
+                    "quick_replies": ["Cancel"],
+                    "input_mode": "date",
+                    "input_context": "appointment_date",
+                }
+            if step == "awaiting_location":
+                return {
+                    "quick_replies": ["Cancel"],
+                    "input_mode": "text",
+                    "input_context": "location",
+                }
+
         if not session.claim_state.get("active"):
-            return list(STARTER_QUICK_REPLIES)
+            return {
+                "quick_replies": list(STARTER_QUICK_REPLIES),
+                "input_mode": "text",
+                "input_context": "",
+            }
 
         step = session.claim_state.get("step", "idle")
         if step == "awaiting_treatment":
-            return ["Physiotherapy", "MRI", "Dental", "Cancel"]
+            return {
+                "quick_replies": ["Physiotherapy", "MRI", "Dental", "Cancel"],
+                "input_mode": "text",
+                "input_context": "claim_type",
+            }
         if step == "awaiting_receipt":
-            return ["Yes", "No", "Cancel"]
+            return {
+                "quick_replies": ["Yes", "No", "Cancel"],
+                "input_mode": "text",
+                "input_context": "receipt",
+            }
         if step == "awaiting_confirmation":
-            return ["Yes", "No"]
-        if step in {"awaiting_date", "awaiting_amount"}:
-            return ["Cancel"]
-        return list(STARTER_QUICK_REPLIES)
+            return {
+                "quick_replies": ["Yes", "No"],
+                "input_mode": "text",
+                "input_context": "confirmation",
+            }
+        if step == "awaiting_date":
+            return {
+                "quick_replies": ["Cancel"],
+                "input_mode": "date",
+                "input_context": "service_date",
+            }
+        if step == "awaiting_amount":
+            return {
+                "quick_replies": ["Cancel"],
+                "input_mode": "text",
+                "input_context": "amount",
+            }
+        return {
+            "quick_replies": list(STARTER_QUICK_REPLIES),
+            "input_mode": "text",
+            "input_context": "",
+        }

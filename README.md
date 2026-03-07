@@ -1,27 +1,36 @@
 # Health Insurance Plan Assistant
 
-Local-first health insurance assistant built around the `4d_health_*.json` plan files in this repo. It provides a FastAPI backend, a Streamlit chat UI, local semantic retrieval with `sentence-transformers` + FAISS, deterministic answer formatting, and a guided claim draft flow.
+Local-first health insurance assistant built around the `4d_health_*.json` plan files in this repo. The backend stays in FastAPI, while the frontend is now a dedicated Next.js app with a more polished, product-style interface inspired by `kota.io`: warm neutrals, deep green surfaces, rounded cards, clearer hierarchy, and clickable workflow actions.
 
 Policy data is not sent to external APIs during retrieval or answer generation.
 
+## Stack
+
+- FastAPI backend in [backend/server.py](/E:/Give_a_go/backend/server.py)
+- Next.js frontend in [frontend/](/E:/Give_a_go/frontend)
+- Local `sentence-transformers` embeddings
+- FAISS vector search
+- Deterministic answer formatting and claim workflow
+
 ## What It Does
 
-- Auto-discovers plan files matching `4d_health_*.json`.
-- Normalizes each benefit row into searchable chunks with citations.
-- Builds a local FAISS index per plan under `faiss_index/<plan_id>/`.
-- Answers coverage questions against the selected plan.
-- Returns citations in the form `Category > Section > Benefit (source_file.json)`.
-- Supports a guided claim draft flow in chat.
-- Exposes a FastAPI API and Swagger docs.
+- Auto-discovers plan files matching `4d_health_*.json`
+- Normalizes each benefit row into searchable chunks with citations
+- Builds a local FAISS index per plan under `faiss_index/<plan_id>/`
+- Answers coverage questions against the selected plan
+- Returns citations in the form `Category > Section > Benefit (source_file.json)`
+- Supports a guided claim draft flow
+- Exposes a FastAPI API and a professional frontend
 
 ## Architecture
 
-1. `core/ingestion.py` loads and normalizes plan JSON into `PolicyChunk` records.
-2. `core/retriever.py` creates local embeddings with `all-MiniLM-L6-v2` and searches them with `faiss-cpu`.
-3. `core/llm.py` formats answers locally. Despite the file name, there is no remote LLM call.
-4. `workflows/claim_workflow.py` runs a deterministic, step-based claim flow.
-5. `backend/server.py` exposes the API.
-6. `app.py` is a Streamlit client for the backend.
+1. [core/ingestion.py](/E:/Give_a_go/core/ingestion.py) loads and normalizes plan JSON into `PolicyChunk` records.
+2. [core/retriever.py](/E:/Give_a_go/core/retriever.py) creates local embeddings with `all-MiniLM-L6-v2` and searches them with `faiss-cpu`.
+3. [core/llm.py](/E:/Give_a_go/core/llm.py) formats answers locally. There is no remote LLM call.
+4. [workflows/claim_workflow.py](/E:/Give_a_go/workflows/claim_workflow.py) runs the deterministic claim flow.
+5. [backend/server.py](/E:/Give_a_go/backend/server.py) exposes the API.
+6. [frontend/app/page.tsx](/E:/Give_a_go/frontend/app/page.tsx) renders the Next.js UI.
+7. [frontend/app/api/[...path]/route.ts](/E:/Give_a_go/frontend/app/api/[...path]/route.ts) proxies browser requests to FastAPI so the frontend can talk to a single app origin.
 
 ## Privacy
 
@@ -31,71 +40,69 @@ Policy data is not sent to external APIs during retrieval or answer generation.
 
 ## Requirements
 
-- Python 3.11 recommended
+- Python 3.11 recommended for the backend
+- Node.js 20+ recommended for the frontend
 - `pip`
-- Enough local disk space for the Python dependencies and the cached embedding model
+- `npm`
 
 `faiss-cpu==1.8.0` was verified with Python 3.11 in this project. If your default `python` points to 3.13, use Python 3.11 explicitly instead.
 
-On the machine where this repo was last verified, the working interpreter was:
-
-```text
-C:\Users\nisha\AppData\Local\Programs\Python\Python311\python.exe
-```
 
 ## Project Layout
 
 ```text
-backend/        FastAPI app, schemas, and service layer
-core/           Ingestion, retrieval, and deterministic answer formatting
-workflows/      Claim workflow state machine
-app.py          Streamlit UI
-client.py       HTTP client used by the UI
-config.py       Runtime configuration
-faiss_index/    Generated local vector indexes and chunk manifests
+backend/         FastAPI app, schemas, and service layer
+core/            Ingestion, retrieval, and deterministic answer formatting
+frontend/        Next.js UI and API proxy
+workflows/       Claim workflow state machine
+faiss_index/     Generated local vector indexes and chunk manifests
 4d_health_*.json Plan data files
+Dockerfile       Backend container
+docker-compose.yml Combined API + frontend setup
 ```
 
-## Local Setup
+## Backend Setup
 
-Make sure `python --version` shows Python 3.11 before installing dependencies.
+Install Python dependencies:
 
 ```bash
 pip install -r requirements.txt
 ```
 
-If your machine has multiple Python versions, use Python 3.11 explicitly:
-
-```powershell
-& 'C:\Users\nisha\AppData\Local\Programs\Python\Python311\python.exe' -m pip install -r requirements.txt
-```
-
-## Run The App
-
-Start the API in one terminal:
+Run the API:
 
 ```bash
 uvicorn backend.server:app --host 127.0.0.1 --port 8000
 ```
 
-Start the UI in another terminal:
+## Frontend Setup
+
+Install frontend dependencies:
 
 ```bash
-streamlit run app.py --server.address 127.0.0.1 --server.port 8501
+cd frontend
+npm ci
 ```
 
-If you need the verified Python 3.11 executables directly on Windows:
+If PowerShell blocks `npm.ps1`, use `npm.cmd` instead:
 
 ```powershell
-& 'C:\Users\nisha\AppData\Local\Programs\Python\Python311\Scripts\uvicorn.exe' backend.server:app --host 127.0.0.1 --port 8000
-& 'C:\Users\nisha\AppData\Local\Programs\Python\Python311\Scripts\streamlit.exe' run app.py --server.address 127.0.0.1 --server.port 8501
+cd frontend
+npm.cmd ci
+```
+
+Run the Next.js app:
+
+```bash
+cd frontend
+npm run dev
 ```
 
 Open:
 
 - API health: `http://127.0.0.1:8000/health`
 - API docs: `http://127.0.0.1:8000/docs`
-- Streamlit UI: `http://127.0.0.1:8501`
+- Frontend UI: `http://127.0.0.1:3000`
 
 ## Docker
 
@@ -108,17 +115,17 @@ docker compose up --build
 This starts:
 
 - FastAPI on port `8000`
-- Streamlit on port `8501`
+- Next.js on port `3000`
 
-Current container notes:
+Container notes:
 
 - `.dockerignore` excludes `faiss_index/`, so containers start without prebuilt indexes.
-- Indexes are created inside the container on first use or when you trigger a rebuild.
-- The current `docker-compose.yml` does not mount a volume for `faiss_index/`, so indexes are not persisted across container rebuilds.
+- Indexes are created inside the backend container on first use or when you trigger a rebuild.
+- `frontend/` has its own Dockerfile and proxies API calls server-side to `http://api:8000`.
 
 ## How Indexing Works
 
-- A plan index is stored under `faiss_index/<plan_id>/`.
+- A plan index is stored under `faiss_index/<plan_id>/`
 - Each index includes:
   - `index.faiss`
   - `chunks.json`
@@ -127,7 +134,7 @@ Current container notes:
   - the source JSON file changed
   - the embedding model changed
   - the internal `INDEX_VERSION` changed
-- If embedding or FAISS loading fails, the app falls back to keyword-only retrieval and the plan will report `vector_enabled: false`.
+- If embedding or FAISS loading fails, the app falls back to keyword-only retrieval and the plan reports `vector_enabled: false`
 
 ## API Endpoints
 
@@ -139,12 +146,6 @@ Current container notes:
 - `POST /chat`
 - `POST /sessions/{session_id}/reset`
 
-Example plan listing:
-
-```bash
-curl http://127.0.0.1:8000/plans
-```
-
 Example question:
 
 ```bash
@@ -152,6 +153,16 @@ curl -X POST http://127.0.0.1:8000/chat \
   -H "Content-Type: application/json" \
   -d "{\"plan_id\":\"4d_health_5\",\"message\":\"Does my insurance cover MRI?\"}"
 ```
+
+## UI Notes
+
+The new frontend intentionally moves away from the old Streamlit look. The current design direction is:
+
+- Kota-style visual language: green foundation, warm paper tones, soft gradients, rounded surfaces
+- three-panel workspace layout on desktop
+- quick replies for simple workflow decisions like `Yes`, `No`, and `Cancel`
+- side rail for sources and claim status
+- a more product-like interaction model than raw chat bubbles alone
 
 ## Claim Draft Flow
 
@@ -169,41 +180,32 @@ The workflow then asks for:
 4. whether a receipt exists
 5. final confirmation
 
-If coverage is confirmed, the assistant returns a JSON claim summary with the matched coverage source.
-
-## Configuration
-
-Key values live in `config.py`. Useful overrides:
-
-- `API_BASE_URL`
-- `EMBEDDING_MODEL`
-- `BACKEND_HOST`
-- `BACKEND_PORT`
-- `UI_PORT`
-- `MIN_REQUEST_GAP_SECONDS`
-
-`.env` loading is supported through `python-dotenv`, but an API key is not required for the current local-only stack.
+When the step is a binary decision, the frontend surfaces clickable quick replies instead of forcing manual typing.
 
 ## Troubleshooting
 
-`Streamlit says the backend is unreachable`
+`Frontend cannot reach the backend`
 
-- Start `uvicorn backend.server:app --host 127.0.0.1 --port 8000`.
-- Confirm `http://127.0.0.1:8000/health` responds.
-- Check that `API_BASE_URL` points to the running backend.
+- Start FastAPI first on `127.0.0.1:8000`
+- Confirm `http://127.0.0.1:8000/health` responds
+- In Docker, confirm the frontend container has `BACKEND_API_BASE_URL=http://api:8000`
+
+`PowerShell blocks npm`
+
+- Use `npm.cmd` instead of `npm`
 
 `vector_enabled` is `false`
 
-- Confirm dependencies installed successfully from `requirements.txt`.
-- Make sure Python 3.11 is being used.
-- Rebuild the selected plan index from the sidebar or call `POST /plans/{plan_id}/rebuild`.
+- Confirm backend dependencies installed successfully from [requirements.txt](/E:/Give_a_go/requirements.txt)
+- Make sure Python 3.11 is being used
+- Rebuild the selected plan index
 
 `The plan data changed but answers did not`
 
-- Rebuild the plan index.
-- The retriever uses file modification time and manifest metadata to decide when to rebuild.
+- Rebuild the plan index
+- The retriever uses file modification time and manifest metadata to decide when to rebuild
 
 `python` points to the wrong interpreter
 
-- Use Python 3.11 explicitly.
-- `main.py` is not the application entrypoint; it only prints the correct startup commands.
+- Use Python 3.11 explicitly
+- [main.py](/E:/Give_a_go/main.py) only prints the recommended startup commands

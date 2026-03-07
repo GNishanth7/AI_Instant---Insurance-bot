@@ -3,4 +3,5 @@ faiss_index/
 __pycache__/
 .pytest_cache/
 .mypy_cache/
-.streamlit/
+frontend/node_modules/
+frontend/.next/
