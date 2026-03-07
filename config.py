@@ -24,6 +24,12 @@ STARTER_QUICK_REPLIES = [
     "I want to file a claim for physiotherapy",
     "I want to book a physiotherapy appointment",
 ]
+PLAN_OVERVIEW_QUICK_REPLIES = [
+    "What outpatient cover do I have?",
+    "Does this plan cover physiotherapy?",
+    "How do I file a claim?",
+    "I want to book an appointment",
+]
 
 TOP_K_RETRIEVAL = 5
 MAX_QUESTION_LENGTH = 500
@@ -35,7 +41,7 @@ EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "all-MiniLM-L6-v2")
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
 GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
 GEMINI_TEMPERATURE = float(os.getenv("GEMINI_TEMPERATURE", "0"))
-GEMINI_MAX_OUTPUT_TOKENS = int(os.getenv("GEMINI_MAX_OUTPUT_TOKENS", "240"))
+GEMINI_MAX_OUTPUT_TOKENS = int(os.getenv("GEMINI_MAX_OUTPUT_TOKENS", "420"))
 ENABLE_GEMINI_ANSWER_GENERATION = os.getenv(
     "ENABLE_GEMINI_ANSWER_GENERATION",
     "true",

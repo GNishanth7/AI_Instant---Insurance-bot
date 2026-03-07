@@ -27,12 +27,12 @@ function formatAmount(value: number | null | undefined) {
 
 function renderCardGrid(items: Array<{ label: string; value: string }>) {
   return (
-    <div className="summary-grid">
+    <div className="summary">
       {items.map((item) => (
-        <article className="summary-card" key={item.label}>
-          <span className="summary-card__label">{item.label}</span>
-          <strong className="summary-card__value">{item.value}</strong>
-        </article>
+        <div className="summary__item" key={item.label}>
+          <span className="summary__label">{item.label}</span>
+          <strong className="summary__value">{item.value}</strong>
+        </div>
       ))}
     </div>
   );

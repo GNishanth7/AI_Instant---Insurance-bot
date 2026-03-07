@@ -166,6 +166,56 @@ def summarize_plan(chunks: list[PolicyChunk]) -> dict[str, int]:
     }
 
 
+def build_plan_overview_context(
+    chunks: list[PolicyChunk],
+    max_examples_per_category: int = 4,
+) -> dict[str, object]:
+    category_order: list[str] = []
+    category_map: dict[str, dict[str, object]] = {}
+    total_sections = {chunk.section for chunk in chunks}
+
+    for chunk in chunks:
+        if chunk.category not in category_map:
+            category_order.append(chunk.category)
+            category_map[chunk.category] = {
+                "category": chunk.category,
+                "benefit_count": 0,
+                "sections": [],
+                "examples": [],
+            }
+
+        entry = category_map[chunk.category]
+        entry["benefit_count"] = int(entry["benefit_count"]) + 1
+
+        sections = entry["sections"]
+        if chunk.section not in sections:
+            sections.append(chunk.section)
+
+        examples = entry["examples"]
+        if len(examples) >= max_examples_per_category:
+            continue
+
+        if any(example["benefit"] == chunk.benefit for example in examples):
+            continue
+
+        examples.append(
+            {
+                "citation": chunk.citation,
+                "benefit": chunk.benefit,
+                "coverage": chunk.coverage,
+                "section": chunk.section,
+            }
+        )
+
+    categories = [category_map[name] for name in category_order]
+    return {
+        "benefit_count": len(chunks),
+        "category_count": len(category_order),
+        "section_count": len(total_sections),
+        "categories": categories,
+    }
+
+
 def slugify(value: str) -> str:
     return re.sub(r"[^a-z0-9]+", "-", value.lower()).strip("-")
 
