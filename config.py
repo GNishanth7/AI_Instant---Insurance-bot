@@ -15,6 +15,7 @@ load_dotenv()
 BASE_DIR = Path(__file__).resolve().parent
 PLAN_FILE_GLOB = "4d_health_*.json"
 FAISS_INDEX_DIR = BASE_DIR / "faiss_index"
+GENERATED_CLAIMS_DIR = BASE_DIR / "generated_claims"
 
 APP_NAME = "Health Insurance Plan Assistant"
 APP_VERSION = "0.1.0"
@@ -48,6 +49,8 @@ ENABLE_GEMINI_ANSWER_GENERATION = os.getenv(
 ).strip().lower() not in {"0", "false", "no"}
 BACKEND_HOST = os.getenv("BACKEND_HOST", "0.0.0.0")
 BACKEND_PORT = int(os.getenv("BACKEND_PORT", "8000"))
+GMAIL_USER = os.getenv("GMAIL_USER", "")
+GMAIL_APP_PASSWORD = os.getenv("GMAIL_APP_PASSWORD", "")
 
 NOT_FOUND_MESSAGE = (
     "I could not find this information in the selected policy data. Please contact HR directly."

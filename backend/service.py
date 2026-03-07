@@ -11,12 +11,18 @@ from config import (
     MAX_QUESTION_LENGTH,
     MIN_REQUEST_GAP_SECONDS,
     NOT_FOUND_MESSAGE,
+    PLAN_OVERVIEW_QUICK_REPLIES,
     PROMPT_INJECTION_PATTERNS,
     RATE_LIMIT_MESSAGE,
     STARTER_QUICK_REPLIES,
     SESSION_TTL_SECONDS,
 )
-from core.ingestion import discover_plan_files, load_plan_chunks, summarize_plan
+from core.ingestion import (
+    build_plan_overview_context,
+    discover_plan_files,
+    load_plan_chunks,
+    summarize_plan,
+)
 from core.llm import PolicyAssistantLLM
 from core.retriever import PlanRetriever
 from workflows.appointment_workflow import (
@@ -143,6 +149,27 @@ class PolicyBackendService:
                     "input_mode": controls["input_mode"],
                     "input_context": controls["input_context"],
                 }
+            elif self._is_plan_overview_intent(cleaned_message):
+                plan_summary = self._plan_summary(plan_id)
+                overview_context = build_plan_overview_context(retriever.chunks)
+                answer = self._assistant.answer_plan_overview(
+                    question=cleaned_message,
+                    plan_name=plan_summary["display_name"],
+                    overview_context=overview_context,
+                )
+                response = {
+                    "session_id": session.session_id,
+                    "plan_id": plan_id,
+                    "content": answer.answer or NOT_FOUND_MESSAGE,
+                    "citation": answer.citation,
+                    "sources": answer.sources,
+                    "claim_summary": None,
+                    "appointment_summary": None,
+                    "disclaimer": answer.disclaimer if answer.citation else "",
+                    "quick_replies": list(PLAN_OVERVIEW_QUICK_REPLIES),
+                    "input_mode": "text",
+                    "input_context": "plan_overview",
+                }
             else:
                 retrieval_results = retriever.retrieve(cleaned_message)
                 relevant_match = retriever.has_relevant_match(retrieval_results)
@@ -243,6 +270,44 @@ class PolicyBackendService:
         lowered = message.lower()
         if any(pattern in lowered for pattern in PROMPT_INJECTION_PATTERNS) or len(message) > 300:
             print(f"[suspicious-input] {message}")
+
+    @staticmethod
+    def _is_plan_overview_intent(message: str) -> bool:
+        normalized = " ".join(message.lower().strip().split())
+        direct_phrases = [
+            "what does my insurance cover",
+            "what my insurance covers",
+            "what does my plan cover",
+            "what does this plan cover",
+            "what is covered by my insurance",
+            "what is covered in my plan",
+            "give me an overview of my plan",
+            "give me a plan overview",
+            "explain my plan",
+            "explain my insurance",
+            "help me understand my plan",
+            "help me understand my insurance",
+            "learn what my insurance covers",
+            "how can i use my insurance",
+            "how do i use my insurance",
+            "how can i make use of it",
+            "what can i use it for",
+        ]
+        if any(phrase in normalized for phrase in direct_phrases):
+            return True
+
+        broad_markers = {"overview", "summary", "explain", "understand", "learn"}
+        plan_markers = {"insurance", "plan", "policy", "benefits", "benefit"}
+        cover_markers = {"cover", "covers", "covered"}
+
+        tokens = set(normalized.split())
+        if broad_markers & tokens and (plan_markers & tokens or cover_markers & tokens):
+            return True
+
+        return (
+            "how can i use" in normalized
+            and ("insurance" in tokens or "plan" in tokens or "policy" in tokens)
+        )
 
     @staticmethod
     def _response_controls_for_session(session: ChatSession) -> dict[str, str | list[str]]:

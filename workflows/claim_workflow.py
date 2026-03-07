@@ -6,8 +6,23 @@ from datetime import datetime
 from typing import Any
 
 from config import CLAIM_INTENT_KEYWORDS
+from core.pdf_generator import generate_claim_pdf
 
 _DATE_PATTERN = re.compile(r"^\d{2}/\d{2}/\d{4}$")
+_LIMIT_PATTERN = re.compile(
+    r"((?:EUR|€)\s*\d+(?:[.,]\d+)?\s*x\s*\d+(?:[.,]\d+)?(?:\s+[A-Za-z]+)?)",
+    re.IGNORECASE,
+)
+_SIMPLE_CAP_PATTERN = re.compile(
+    r"(?:up to\s*)?((?:EUR|€)\s*\d+(?:[.,]\d+)?)",
+    re.IGNORECASE,
+)
+_MULTIPLIER_VALUE_PATTERN = re.compile(
+    r"(?:EUR|€)\s*(\d+(?:[.,]\d+)?)\s*x\s*(\d+(?:[.,]\d+)?)",
+    re.IGNORECASE,
+)
+_YES_WORDS = {"yes", "y"}
+_NO_WORDS = {"no", "n"}
 _CANCEL_WORDS = {"cancel", "stop", "exit"}
 
 
@@ -31,6 +46,10 @@ def initial_claim_state() -> dict[str, Any]:
             "policy_covered": None,
             "coverage_source": "",
             "coverage_details": "",
+            "plan_id": "",
+            "amount_limit_eur": None,
+            "amount_limit_label": "",
+            "pdf_file_path": "",
         },
     }
 
@@ -77,10 +96,12 @@ def handle_claim_turn(message, state, retriever, assistant) -> ClaimTurnResult:
         return _store_date(cleaned_message, state)
     if step == "awaiting_amount":
         return _store_amount(cleaned_message, state)
+    if step == "awaiting_amount_warning_confirmation":
+        return _confirm_limit_warning(cleaned_message, state)
     if step == "awaiting_receipt":
         return _store_receipt(cleaned_message, state)
     if step == "awaiting_confirmation":
-        return _finalize_claim(cleaned_message, state)
+        return _confirm_claim_summary(cleaned_message, state)
 
     _reset_state(state)
     return ClaimTurnResult(message="Claim drafting was reset. Please start again.")
@@ -101,10 +122,14 @@ def _store_treatment(treatment, state, retriever, assistant) -> ClaimTurnResult:
             sources=coverage.sources,
         )
 
+    coverage_details = getattr(coverage, "coverage_details", "") or coverage.summary
     state["data"]["claim_type"] = treatment.title()
     state["data"]["policy_covered"] = True
     state["data"]["coverage_source"] = coverage.citation
-    state["data"]["coverage_details"] = coverage.summary
+    state["data"]["coverage_details"] = coverage_details
+    state["data"]["plan_id"] = getattr(retriever, "plan_name", "")
+    state["data"]["amount_limit_eur"] = _extract_amount_limit_eur(coverage_details)
+    state["data"]["amount_limit_label"] = _extract_amount_limit_label(coverage_details)
     state["step"] = "awaiting_date"
 
     return ClaimTurnResult(
@@ -137,16 +162,49 @@ def _store_amount(value: str, state) -> ClaimTurnResult:
     if amount <= 0:
         return ClaimTurnResult(message="Claim amount must be greater than zero.")
 
-    state["data"]["amount_eur"] = round(amount, 2)
+    rounded_amount = round(amount, 2)
+    state["data"]["amount_eur"] = rounded_amount
+
+    limit = state["data"].get("amount_limit_eur")
+    limit_label = state["data"].get("amount_limit_label") or ""
+    if limit is not None and rounded_amount > float(limit):
+        state["step"] = "awaiting_amount_warning_confirmation"
+        treatment = str(state["data"].get("claim_type", "this treatment")).lower()
+        limit_text = _format_limit_reference(float(limit), limit_label)
+        return ClaimTurnResult(
+            message=(
+                f"Note: Your plan covers {treatment} up to {limit_text}.\n"
+                f"You have entered {_format_chat_currency(rounded_amount)} which exceeds this limit.\n"
+                "Your claim may be partially reimbursed. Do you want to continue?"
+            ),
+            claim_summary=_claim_summary(state["data"]),
+        )
+
     state["step"] = "awaiting_receipt"
     return ClaimTurnResult(message="Do you have a receipt or invoice? Reply yes or no.")
 
 
+def _confirm_limit_warning(value: str, state) -> ClaimTurnResult:
+    normalized = value.strip().lower()
+    if normalized in _YES_WORDS:
+        state["step"] = "awaiting_receipt"
+        return ClaimTurnResult(message="Do you have a receipt or invoice? Reply yes or no.")
+
+    if normalized in _NO_WORDS:
+        state["data"]["amount_eur"] = None
+        state["step"] = "awaiting_amount"
+        return ClaimTurnResult(
+            message="Okay. Please enter a different claim amount in EUR, or type Cancel."
+        )
+
+    return ClaimTurnResult(message="Please reply YES to continue or NO to change the amount.")
+
+
 def _store_receipt(value: str, state) -> ClaimTurnResult:
     normalized = value.strip().lower()
-    if normalized in {"yes", "y"}:
+    if normalized in _YES_WORDS:
         has_receipt = True
-    elif normalized in {"no", "n"}:
+    elif normalized in _NO_WORDS:
         has_receipt = False
     else:
         return ClaimTurnResult(message="Please reply yes or no.")
@@ -160,18 +218,35 @@ def _store_receipt(value: str, state) -> ClaimTurnResult:
     )
 
 
-def _finalize_claim(value: str, state) -> ClaimTurnResult:
+def _confirm_claim_summary(value: str, state) -> ClaimTurnResult:
     normalized = value.strip().lower()
-    if normalized in {"yes", "y"}:
+    if normalized in _YES_WORDS:
         summary = _claim_summary(state["data"])
+        try:
+            pdf_path = generate_claim_pdf(summary)
+            summary["pdf_file_path"] = str(pdf_path)
+        except Exception as exc:
+            return ClaimTurnResult(
+                message=(
+                    "I could not generate the PDF right now. "
+                    f"Error: {exc}"
+                ),
+                claim_summary=summary,
+                citation=summary["coverage_source"],
+            )
+
         _reset_state(state)
         return ClaimTurnResult(
-            message="Claim summary generated.",
+            message=(
+                "Your claim summary PDF is ready.\n"
+                f"Saved to: {summary['pdf_file_path']}\n"
+                "Attach your original receipt and submit it to your insurer."
+            ),
             claim_summary=summary,
             citation=summary["coverage_source"],
         )
 
-    if normalized in {"no", "n"}:
+    if normalized in _NO_WORDS:
         _reset_state(state)
         return ClaimTurnResult(message="Claim drafting discarded. Start again when ready.")
 
@@ -187,7 +262,58 @@ def _claim_summary(data: dict[str, Any]) -> dict[str, Any]:
         "policy_covered": data["policy_covered"],
         "coverage_source": data["coverage_source"],
         "coverage_details": data["coverage_details"],
+        "plan_id": data.get("plan_id", ""),
+        "amount_limit_eur": data.get("amount_limit_eur"),
+        "amount_limit_label": data.get("amount_limit_label", ""),
+        "pdf_file_path": data.get("pdf_file_path", ""),
     }
+
+
+def _extract_amount_limit_eur(coverage_details: str) -> float | None:
+    multiplier_match = _MULTIPLIER_VALUE_PATTERN.search(coverage_details)
+    if multiplier_match:
+        amount = float(multiplier_match.group(1).replace(",", ""))
+        visits = float(multiplier_match.group(2).replace(",", ""))
+        return round(amount * visits, 2)
+
+    single_cap_match = _SIMPLE_CAP_PATTERN.search(coverage_details)
+    if single_cap_match:
+        return round(float(single_cap_match.group(1).replace("EUR", "").replace("€", "").replace(",", "").strip()), 2)
+
+    return None
+
+
+def _extract_amount_limit_label(coverage_details: str) -> str:
+    multiplier_match = _LIMIT_PATTERN.search(coverage_details)
+    if multiplier_match:
+        return _clean_limit_label(multiplier_match.group(1))
+
+    single_cap_match = _SIMPLE_CAP_PATTERN.search(coverage_details)
+    if single_cap_match:
+        return _clean_limit_label(single_cap_match.group(1))
+
+    return ""
+
+
+def _format_limit_reference(limit_eur: float, limit_label: str) -> str:
+    limit_amount = _format_chat_currency(limit_eur)
+    normalized_label = limit_label.strip()
+    if not normalized_label:
+        return limit_amount
+    if normalized_label == limit_amount:
+        return limit_amount
+    return f"{limit_amount} ({normalized_label})"
+
+
+def _format_chat_currency(value: float) -> str:
+    if float(value).is_integer():
+        return f"€{value:,.0f}"
+    return f"€{value:,.2f}"
+
+
+def _clean_limit_label(value: str) -> str:
+    normalized = " ".join(value.replace("EUR", "€").split())
+    return normalized
 
 
 def _reset_state(state) -> None:

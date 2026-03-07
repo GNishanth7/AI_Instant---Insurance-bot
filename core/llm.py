@@ -31,6 +31,8 @@ class AssistantResponse:
 class CoverageDecision:
     status: str
     summary: str
+    benefit: str = ""
+    coverage_details: str = ""
     citation: str = ""
     sources: list[dict[str, str | float]] = field(default_factory=list)
     used_fallback: bool = False
@@ -102,7 +104,11 @@ class PolicyAssistantLLM:
             plan_name=plan_name,
             overview_context=overview_context,
         )
-        if generated_answer and generated_answer.strip() != NOT_FOUND_MESSAGE:
+        if (
+            generated_answer
+            and generated_answer.strip() != NOT_FOUND_MESSAGE
+            and self._is_complete_plan_overview_answer(generated_answer)
+        ):
             return AssistantResponse(
                 answer=generated_answer,
                 citation=citation,
@@ -130,6 +136,7 @@ class PolicyAssistantLLM:
                 summary=(
                     f"I could not confirm coverage for {treatment_type} in the selected policy data."
                 ),
+                benefit=treatment_type,
                 sources=sources,
                 used_fallback=True,
             )
@@ -146,6 +153,8 @@ class PolicyAssistantLLM:
         return CoverageDecision(
             status=status,
             summary=summary,
+            benefit=top.chunk.benefit,
+            coverage_details=top.chunk.coverage,
             citation=top.chunk.citation,
             sources=sources,
             used_fallback=True,
@@ -403,7 +412,7 @@ class PolicyAssistantLLM:
 
         parts = [
             (
-                f"Here is a high-level overview of {plan_name}. "
+                "Here is a high-level overview of the selected plan. "
                 f"I found {benefit_count} benefit entries across {category_count} main areas "
                 f"and {section_count} sections in the selected policy data."
             ),
@@ -442,6 +451,17 @@ class PolicyAssistantLLM:
             ]
         )
         return "\n".join(parts)
+
+    @staticmethod
+    def _is_complete_plan_overview_answer(answer: str) -> bool:
+        normalized = answer.strip()
+        required_sections = [
+            "Overview:",
+            "Main areas of cover:",
+            "How to make use of it:",
+            "Good next questions:",
+        ]
+        return all(section in normalized for section in required_sections)
 
     @staticmethod
     def _related_results(
