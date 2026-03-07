@@ -13,6 +13,7 @@ from config import (
     NOT_FOUND_MESSAGE,
     PROMPT_INJECTION_PATTERNS,
     RATE_LIMIT_MESSAGE,
+    STARTER_QUICK_REPLIES,
     SESSION_TTL_SECONDS,
 )
 from core.ingestion import discover_plan_files, load_plan_chunks, summarize_plan
@@ -107,6 +108,7 @@ class PolicyBackendService:
                     "sources": result.sources,
                     "claim_summary": result.claim_summary,
                     "disclaimer": ANSWER_DISCLAIMER if result.citation else "",
+                    "quick_replies": self._quick_replies_for_session(session),
                 }
             else:
                 retrieval_results = retriever.retrieve(cleaned_message)
@@ -124,6 +126,7 @@ class PolicyBackendService:
                     "sources": answer.sources,
                     "claim_summary": None,
                     "disclaimer": answer.disclaimer if answer.citation else "",
+                    "quick_replies": list(STARTER_QUICK_REPLIES),
                 }
 
             session.last_request_at = time.time()
@@ -203,3 +206,19 @@ class PolicyBackendService:
         lowered = message.lower()
         if any(pattern in lowered for pattern in PROMPT_INJECTION_PATTERNS) or len(message) > 300:
             print(f"[suspicious-input] {message}")
+
+    @staticmethod
+    def _quick_replies_for_session(session: ChatSession) -> list[str]:
+        if not session.claim_state.get("active"):
+            return list(STARTER_QUICK_REPLIES)
+
+        step = session.claim_state.get("step", "idle")
+        if step == "awaiting_treatment":
+            return ["Physiotherapy", "MRI", "Dental", "Cancel"]
+        if step == "awaiting_receipt":
+            return ["Yes", "No", "Cancel"]
+        if step == "awaiting_confirmation":
+            return ["Yes", "No"]
+        if step in {"awaiting_date", "awaiting_amount"}:
+            return ["Cancel"]
+        return list(STARTER_QUICK_REPLIES)

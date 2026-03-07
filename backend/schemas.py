@@ -45,6 +45,7 @@ class ChatResponse(BaseModel):
     sources: list[SourceItem] = Field(default_factory=list)
     claim_summary: dict[str, Any] | None = None
     disclaimer: str = ""
+    quick_replies: list[str] = Field(default_factory=list)
 
 
 class RebuildResponse(BaseModel):

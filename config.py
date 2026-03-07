@@ -18,6 +18,11 @@ FAISS_INDEX_DIR = BASE_DIR / "faiss_index"
 
 APP_NAME = "Health Insurance Plan Assistant"
 APP_VERSION = "0.1.0"
+STARTER_QUICK_REPLIES = [
+    "Does my insurance cover MRI?",
+    "What is the dental cover?",
+    "I want to file a claim for physiotherapy",
+]
 
 TOP_K_RETRIEVAL = 5
 MAX_QUESTION_LENGTH = 500

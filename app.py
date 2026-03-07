@@ -60,28 +60,71 @@ def main() -> None:
         return
 
     show_debug = st.sidebar.checkbox("Show retrieved sources", value=False)
-    st.sidebar.caption("FastAPI backend with local sentence-transformers + FAISS retrieval.")
-    st.sidebar.metric("Benefit rows", selected_plan["benefit_count"])
-    st.sidebar.metric("Categories", selected_plan["category_count"])
-    st.sidebar.metric("Sections", selected_plan["section_count"])
-    st.sidebar.caption(
-        "Retrieval mode: vector index"
-        if selected_plan["vector_enabled"]
-        else "Retrieval mode: keyword fallback"
+    st.sidebar.markdown("---")
+    st.sidebar.markdown(
+        '<p style="font-size:0.7rem;text-transform:uppercase;letter-spacing:1px;'
+        'color:#94a3b8;margin-bottom:0.5rem">Plan Stats</p>',
+        unsafe_allow_html=True,
+    )
+    c1, c2, c3 = st.sidebar.columns(3)
+    c1.metric("Benefits", selected_plan["benefit_count"])
+    c2.metric("Categories", selected_plan["category_count"])
+    c3.metric("Sections", selected_plan["section_count"])
+    st.sidebar.markdown("---")
+    st.sidebar.caption("Gemini LLM + FAISS vector retrieval")
+
+    st.markdown(
+        '<div style="margin-bottom:0.25rem">'
+        '<span style="font-size:2rem;font-weight:700;color:#0f172a;letter-spacing:-0.5px">'
+        f'{APP_NAME}</span></div>',
+        unsafe_allow_html=True,
+    )
+    st.markdown(
+        '<p style="color:#64748b;font-size:0.95rem;margin-top:0">'
+        'Ask coverage questions about the selected plan or start a claim draft in chat.</p>',
+        unsafe_allow_html=True,
     )
 
-    st.title(APP_NAME)
-    st.caption(
-        "Ask coverage questions about the selected plan or start a claim draft in chat."
+    col1, col2, col3 = st.columns(3)
+    col1.markdown(
+        '<div style="background:#f1f5f9;border-radius:10px;padding:12px 16px;text-align:center;'
+        'border:1px solid #e2e8f0">'
+        '<span style="font-size:0.75rem;color:#64748b;text-transform:uppercase;letter-spacing:0.5px">'
+        'Selected Plan</span><br>'
+        f'<span style="font-size:1.05rem;font-weight:600;color:#0f172a">{selected_plan["display_name"]}</span>'
+        '</div>',
+        unsafe_allow_html=True,
     )
-
-    with st.container():
-        st.markdown(f"**Selected plan:** `{selected_plan['display_name']}`")
-        st.markdown(
-            "Try: `Does my insurance cover MRI?`, "
-            "`What is the maternity consultant fee cover?`, or "
-            "`I want to file a claim for physiotherapy`."
-        )
+    col2.markdown(
+        '<div style="background:#f1f5f9;border-radius:10px;padding:12px 16px;text-align:center;'
+        'border:1px solid #e2e8f0">'
+        '<span style="font-size:0.75rem;color:#64748b;text-transform:uppercase;letter-spacing:0.5px">'
+        'Benefits</span><br>'
+        f'<span style="font-size:1.05rem;font-weight:600;color:#0f172a">{selected_plan["benefit_count"]} rows</span>'
+        '</div>',
+        unsafe_allow_html=True,
+    )
+    col3.markdown(
+        '<div style="background:#f1f5f9;border-radius:10px;padding:12px 16px;text-align:center;'
+        'border:1px solid #e2e8f0">'
+        '<span style="font-size:0.75rem;color:#64748b;text-transform:uppercase;letter-spacing:0.5px">'
+        'Retrieval</span><br>'
+        '<span style="font-size:1.05rem;font-weight:600;color:#0f172a">'
+        f'{"Vector" if selected_plan["vector_enabled"] else "Keyword"}</span>'
+        '</div>',
+        unsafe_allow_html=True,
+    )
+    st.markdown(
+        '<div style="margin:1rem 0 0.5rem;display:flex;gap:8px;flex-wrap:wrap">'
+        '<span style="background:#e0f2fe;color:#0369a1;padding:6px 14px;border-radius:20px;'
+        'font-size:0.82rem;cursor:default">Does my insurance cover MRI?</span>'
+        '<span style="background:#e0f2fe;color:#0369a1;padding:6px 14px;border-radius:20px;'
+        'font-size:0.82rem;cursor:default">What is the maternity consultant fee cover?</span>'
+        '<span style="background:#dcfce7;color:#166534;padding:6px 14px;border-radius:20px;'
+        'font-size:0.82rem;cursor:default">I want to file a claim for physiotherapy</span>'
+        '</div>',
+        unsafe_allow_html=True,
+    )
 
     _render_messages(show_debug)
 
@@ -204,7 +247,7 @@ def _append_message(
 
 
 def _render_backend_unavailable() -> None:
-    st.error("FastAPI backend is not reachable.")
+    st.error("Backend is not reachable.")
     st.code("uvicorn backend.server:app --host 0.0.0.0 --port 8000", language="bash")
     st.caption("After the API is running, restart the Streamlit UI.")
 
@@ -213,23 +256,110 @@ def _apply_styles() -> None:
     st.markdown(
         """
         <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+        /* ── Global ── */
         .stApp {
-            background:
-                radial-gradient(circle at top left, rgba(229, 241, 255, 0.9), transparent 35%),
-                linear-gradient(180deg, #f6fbff 0%, #eef5f1 100%);
+            background: #f8fafc;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
         }
+
+        /* ── Sidebar ── */
         [data-testid="stSidebar"] {
             background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
+            border-right: 1px solid rgba(255,255,255,0.06);
         }
         [data-testid="stSidebar"] * {
-            color: #e2e8f0;
+            color: #cbd5e1;
         }
+        [data-testid="stSidebar"] [data-testid="stMetricValue"] {
+            color: #f1f5f9 !important;
+            font-size: 1.4rem !important;
+            font-weight: 700 !important;
+        }
+        [data-testid="stSidebar"] [data-testid="stMetricLabel"] {
+            color: #94a3b8 !important;
+            font-size: 0.7rem !important;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        [data-testid="stSidebar"] button {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
+            color: #fff !important;
+            border: none !important;
+            border-radius: 10px !important;
+            font-weight: 600 !important;
+            padding: 0.55rem 1rem !important;
+            transition: all 0.2s ease !important;
+        }
+        [data-testid="stSidebar"] button:hover {
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important;
+            box-shadow: 0 4px 12px rgba(37,99,235,0.35) !important;
+        }
+        [data-testid="stSidebar"] hr {
+            border-color: rgba(148,163,184,0.15) !important;
+        }
+
+        /* ── Chat messages ── */
         div[data-testid="stChatMessage"] {
-            border-radius: 18px;
-            border: 1px solid rgba(15, 23, 42, 0.08);
-            box-shadow: 0 18px 50px rgba(15, 23, 42, 0.06);
-            background: rgba(255, 255, 255, 0.78);
-            backdrop-filter: blur(8px);
+            border-radius: 16px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 1px 3px rgba(15,23,42,0.04);
+            background: #ffffff;
+            padding: 1rem 1.25rem;
+            margin-bottom: 0.75rem;
+        }
+        div[data-testid="stChatMessage"] p,
+        div[data-testid="stChatMessage"] li,
+        div[data-testid="stChatMessage"] span {
+            color: #1e293b !important;
+            font-size: 0.92rem;
+            line-height: 1.65;
+        }
+
+        /* ── Chat input ── */
+        [data-testid="stChatInput"] {
+            border-radius: 14px !important;
+            border: 2px solid #e2e8f0 !important;
+            background: #ffffff !important;
+            box-shadow: 0 2px 8px rgba(15,23,42,0.04) !important;
+        }
+        [data-testid="stChatInput"]:focus-within {
+            border-color: #3b82f6 !important;
+            box-shadow: 0 0 0 3px rgba(59,130,246,0.12) !important;
+        }
+
+        /* ── Typography ── */
+        .stApp h1, .stApp h2, .stApp h3 {
+            color: #0f172a !important;
+            font-weight: 700 !important;
+        }
+        .stApp p, .stApp span, .stApp label {
+            color: #334155;
+        }
+        .stApp .stMarkdown code {
+            color: #0f172a;
+            background: #f1f5f9;
+            padding: 2px 7px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+        }
+
+        /* ── Metric cards on main area ── */
+        [data-testid="stMetricValue"] {
+            color: #0f172a !important;
+        }
+
+        /* ── Expander ── */
+        details {
+            border: 1px solid #e2e8f0 !important;
+            border-radius: 10px !important;
+            background: #f8fafc !important;
+        }
+
+        /* ── Spinner ── */
+        .stSpinner > div {
+            border-top-color: #3b82f6 !important;
         }
         </style>
         """,
