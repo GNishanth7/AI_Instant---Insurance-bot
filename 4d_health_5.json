@@ -1,0 +1,535 @@
+{
+  "TableOfCover":[
+    {
+      "Icon":"https://yonderpublic.blob.core.windows.net/contentdelivery/Vector-overview.svg",
+      "Name":"Overview",
+      "Sections":[
+        {
+          "Name":"",
+          "SubSections":[
+            {
+              "Benefit":"GP Visits",
+              "Coverage":"75% up to €60 per visit"
+            },
+            {
+              "Benefit":"Dental - emergency treatment",
+              "Coverage":"Up to €250 in emergency"
+            },
+            {
+              "Benefit":"Dental - routine treatment",
+              "Coverage":"50% up to €50 per policy year"
+            },
+            {
+              "Benefit":"Dental - non routine treatment",
+              "Coverage":"50% up to €250 per policy year"
+            },
+            {
+              "Benefit":"Prescriptions",
+              "Coverage":"€20 x 5 prescriptions, €1 individual excess"
+            },
+            {
+              "Benefit":"Public Hospital (Inpatient)",
+              "Coverage":"Semi-private, private & day-case fully covered"
+            },
+            {
+              "Benefit":"Private Hospital (Inpatient)",
+              "Coverage":"Semi-private & private room - €50 excess per claim (Private room only), €2000 co-payment on certain procedures on both.\nDay case - covered"
+            },
+            {
+              "Benefit":"High Tech Hospital (Inpatient)",
+              "Coverage":"Semi-private & private room - Covered, €50 excess per claim (Beacon, Private Room only), Mater Private & Blackrock Clinic 50% cover\nDay case - covered"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "Icon":"https://yonderpublic.blob.core.windows.net/contentdelivery/Vector-inpatient.svg",
+      "Name":"Inpatient",
+      "Sections":[
+        {
+          "Name":"",
+          "SubSections":[
+            {
+              "Benefit":"Consultant Fees",
+              "Coverage":"Covered"
+            },
+            {
+              "Benefit":"Inpatient Fees",
+              "Coverage":"Covered"
+            },
+            {
+              "Benefit": "Inpatient Scans",
+              "Coverage": "Covered"
+            }
+          ]
+        },
+        {
+          "Name":"Public Hospital",
+          "SubSections":[
+            {
+              "Benefit":"Semi-private room",
+              "Coverage":"Covered"
+            },
+            {
+              "Benefit":"Private room",
+              "Coverage":"Covered"
+            },
+            {
+              "Benefit":"Day case",
+              "Coverage":"Covered"
+            }
+          ]
+        },
+        {
+          "Name":"Private Hospital",
+          "SubSections":[
+            {
+              "Benefit":"Semi-private room",
+              "Coverage":"Covered subject to €2,000 co-payment on certain orthopaedic procedures"
+            },
+            {
+              "Benefit":"Private room",
+              "Coverage":"Covered subject to €50 excess per claim subject to €2,000 co-payment on certain orthopaedic procedures"
+            },
+            {
+              "Benefit":"Day case",
+              "Coverage":"Covered"
+            }
+          ]
+        },
+        {
+          "Name":"High-tech Hospital",
+          "SubSections":[
+            {
+              "Benefit":"Semi-private room",
+              "Coverage":"Covered (Beacon Only). Mater Private and Blackrock Clinic 50% cover"
+            },
+            {
+              "Benefit":"Private room",
+              "Coverage":"Covered (Beacon only) subject to €50 excess per claim. 50% Cover in Blackrock Clinic and Mater Private"
+            },
+            {
+              "Benefit":"Day case",
+              "Coverage":"Covered"
+            },
+            {
+              "Benefit":"Listed Cardiac Procedures",
+              "Coverage":"Covered"
+            },
+            {
+              "Benefit":"Listed Special procedures",
+              "Coverage":"Covered subject to €50 excess per claim subject to €2,000 co-payment on certain orthopaedic procedures"
+            }
+          ]
+        },
+        {
+          "Name":"Maternity",
+          "SubSections":[
+            {
+              "Benefit":"Public hospital cover for maternity",
+              "Coverage":"3 nights accommodation"
+            },
+            {
+              "Benefit":"Inpatient maternity consultant fees",
+              "Coverage":"As per schedule of Benefits for professional fees"
+            },
+            {
+              "Benefit":"Home birth",
+              "Coverage":"Covered up to €4,000"
+            }
+          ]
+        },
+        {
+          "Name":"Emergency Inpatient Treatment Abroad and related Benefits",
+          "SubSections":[
+            {
+              "Benefit":"Hospital bill for inpatient treatment",
+              "Coverage":"Covered up to €100,000"
+            },
+            {
+              "Benefit":"Repatriation expenses",
+              "Coverage":"Covered up to €1 million"
+            },
+            {
+              "Benefit":"Expenses for companion who remains with you",
+              "Coverage":"Covered up to €1,000"
+            },
+            {
+              "Benefit":"Companion repatriation expenses",
+              "Coverage":"Covered up to €1,000"
+            },
+            {
+              "Benefit":"24 hour telephone assistance",
+              "Coverage":"Yes"
+            }
+          ]
+        },
+        {
+          "Name":"Elective overseas referral",
+          "SubSections":[
+            {
+              "Benefit": "Elective Procedure abroad - for procedures that are not available in Ireland",
+              "Coverage": "Covered up to the amount for the most similar procedure to treat the same condition in Ireland to a maximum of €125,000"
+            },
+            {
+              "Benefit": "Elective Procedure abroad - for procedures that are available in Ireland",
+              "Coverage": "Covered up to the level of cover available in Ireland to a maximum of €125,000"
+            }
+          ]
+        },
+        {
+          "Name":"Psychiatric treatment",
+          "SubSections":[
+            {
+              "Benefit":"Not related to substance abuse",
+              "Coverage":"100 days"
+            },
+            {
+              "Benefit":"Related to substance abuse",
+              "Coverage":"91 days per 5 years"
+            }
+          ]
+        }
+      ],
+      "Description":null
+    },
+    {
+      "Icon":"https://yonderpublic.blob.core.windows.net/contentdelivery/Vector-outpatient.svg",
+      "Name":"Outpatient",
+      "Sections":[
+        {
+          "Name":"",
+          "SubSections":[
+            {
+              "Benefit":"Nurse-on-call",
+              "Coverage":"Yes"
+            },
+            {
+              "Benefit":"Digital Doctor",
+              "Coverage":"Unlimited. See irishlifehealth.ie for further information."
+            },
+            {
+              "Benefit":"Minor Injury Clinic Cover",
+              "Coverage":"75% up to €500 per visit"
+            },
+            {
+              "Benefit":"Minor Injury Clinic Cover (Pay & Claim)",
+              "Coverage":"75% up to €500 per visit"
+            },
+            {
+              "Benefit":"HPV Vaccine",
+              "Coverage":"50% up to €200 per policy year"
+            },
+            {
+              "Benefit":"Out-patient maternity consultant fees",
+              "Coverage":"€600"
+            },
+            {
+              "Benefit":"Menopause Benefit",
+              "Coverage":"80% cover for initial consultation"
+            },
+            {
+              "Benefit":"Nutrition Recovery Benefit",
+              "Coverage":"€50 contribution"
+            },
+            {
+              "Benefit":"Health screening & allergy testing",
+              "Coverage":"Up to €300 per policy year"
+            },
+            {
+              "Benefit":"Child Development Benefit",
+              "Coverage":"75% up to €300 for a developmental / neurodevelopmental assessment"
+            },
+            {
+              "Benefit":"Psychotherapy and counselling benefit",
+              "Coverage":"50% up to 12 visits capped at €1,000 per policy year"
+            },
+            {
+              "Benefit":"Mammogram",
+              "Coverage":"First visit fully covered"
+            },
+            {
+              "Benefit":"Dexa Scan",
+              "Coverage":"First visit fully covered"
+            }
+          ] 
+        },
+        {
+          "Name":"Scans (in approved centres)",
+          "SubSections":[
+            {
+              "Benefit":"PET-CT",
+              "Coverage":"Covered"
+            },
+            {
+              "Benefit":"MRI",
+              "Coverage":"Covered"
+            },
+            {
+              "Benefit":"CT",
+              "Coverage":"Covered"
+            }
+          ]
+        },
+        {
+          "Name":"Subject to €1 individual excess",
+          "SubSections":[
+            {
+              "Benefit":"Maximum amount of outpatient benefits per member per policy year",
+              "Coverage":"€4,000"
+            },
+            {
+              "Benefit":"Consultant fees",
+              "Coverage":"75% up to €190 per visit"
+            },
+            {
+              "Benefit":"Public A&E cover",
+              "Coverage":"50% up to €50 per visit"
+            },
+            {
+              "Benefit":"Psycho-oncology counseling",
+              "Coverage":"50% up to €25 x 8 visits"
+            },
+            {
+              "Benefit":"Manual lymph drainage",
+              "Coverage":"50% up to €25 x 5 visits"
+            },
+            {
+              "Benefit":"Home Recovery Benefit",
+              "Coverage":"€80 x 10 days"
+            },
+            {
+              "Benefit":"Emergency dental care",
+              "Coverage":"Up to €250"
+            },
+            {
+              "Benefit": "Eyebrow tattooing (following cancer treatment)",
+              "Coverage": "Covered up to €150 once per policy year"
+            },
+            {
+              "Benefit": "Breast prosthesis or wig (following cancer treatment)",
+              "Coverage": "First breast prosthesis and wig covered, subsequent claims covered as per the medical and surgical appliances list available on www.irishlifehealth.ie."
+            },
+            {
+              "Benefit":"Medical and surgical appliances",
+              "Coverage":"As per the medical and surgical appliances list, available on www.irishlifehealth.ie (subject to €100 excess)"
+            },
+            {
+              "Benefit":"Pathology-cost of test",
+              "Coverage":"50% Covered"
+            },
+            {
+              "Benefit":"Pathology consultant fees",
+              "Coverage":"50% as per schedule of benefits for professional fees, available on www.irishlifehealth.ie"
+            },
+            {
+              "Benefit":"Radiology - cost of test",
+              "Coverage":"50% Covered"
+            },
+            {
+              "Benefit":"Radiology consultant fees",
+              "Coverage":"50% as per schedule of benefits for professional fees, available on www.irishlifehealth.ie"
+            }
+          ]
+        }
+      ],
+      "Description":null
+    },
+    {
+      "Icon":"https://yonderpublic.blob.core.windows.net/contentdelivery/Vector-daytoday.svg",
+      "Name":"Day to Day Benefits",
+      "Sections":[
+        {
+          "Name":"",
+          "SubSections":[
+            {
+              "Benefit":"Individual Day-to-day excess",
+              "Coverage":"€10"
+            }
+          ] 
+        },
+        {
+          "Name":"Day to day Practitioners",
+          "SubSections":[
+            {
+              "Benefit":"GP visits",
+              "Coverage":"75% up to €60 per visit"
+            },
+            {
+              "Benefit":"Dental - routine treatment",
+              "Coverage":"50% up to €50 per policy year"
+            },
+            {
+              "Benefit":"Dental - non routine treatment",
+              "Coverage":"50% up to €250 per policy year"
+            },
+            {
+              "Benefit":"Physiotherapist or Physical therapist",
+              "Coverage":"€40 x 15 visits"
+            }
+          ] 
+        },
+        {
+          "Name":"Allied Health Professionals and Alternative Practitioners",
+          "SubSections":[
+            {
+              "Benefit":"Acupuncturist",
+              "Coverage":"50% up to €35 x 12 combined visits - see table of cover footnotes for precise claims information"
+            },
+            {
+              "Benefit":"Chiropractor",
+              "Coverage":"50% up to €35 x 12 combined visits - see table of cover footnotes for precise claims information"
+            },
+            {
+              "Benefit":"Homeopath",
+              "Coverage":"50% up to €35 x 12 combined visits - see table of cover footnotes for precise claims information"
+            },
+            {
+              "Benefit":"Massage therapist",
+              "Coverage":"50% up to €35 x 12 combined visits - see table of cover footnotes for precise claims information"
+            },
+            {
+              "Benefit":"Osteopath",
+              "Coverage":"50% up to €35 x 12 combined visits - see table of cover footnotes for precise claims information"
+            },
+            {
+              "Benefit":"Reflexologist",
+              "Coverage":"50% up to €35 x 12 combined visits - see table of cover footnotes for precise claims information"
+            },
+            {
+              "Benefit":"Reiki practitioner",
+              "Coverage":"50% up to €35 x 12 combined visits - see table of cover footnotes for precise claims information"
+            }
+          ]
+        },
+        {
+          "Name":"Other day to day benefits",
+          "SubSections":[
+            {
+              "Benefit":"Chiropodist",
+              "Coverage":"50% up to €35 x 12 combined visits - see table of cover footnotes for precise claims information"
+            },
+            {
+              "Benefit":"Psychologist",
+              "Coverage":"€25 x 10 visits"
+            },
+            {
+              "Benefit":"Dietician",
+              "Coverage":"50% up to €35 x 12 combined visits - see table of cover footnotes for precise claims information"
+            },
+            {
+              "Benefit":"Hearing test",
+              "Coverage":"Up to €25 x 1"
+            },
+            {
+              "Benefit":"Nutritionist",
+              "Coverage":"50% up to €35 x 12 combined visits - see table of cover footnotes for precise claims information"
+            },
+            {
+              "Benefit":"Occupational therapist",
+              "Coverage":"50% up to €35 x 12 combined visits - see table of cover footnotes for precise claims information"
+            },
+            {
+              "Benefit":"Optical (eye test and/or glasses/lenses combined)",
+              "Coverage":"50% up to €150 per policy year"
+            },
+            {
+              "Benefit":"Orthoptist",
+              "Coverage":"50% up to €35 x 12 combined visits - see table of cover footnotes for precise claims information"
+            },
+            {
+              "Benefit":"Podiatrist",
+              "Coverage":"50% up to €35 x 12 combined visits - see table of cover footnotes for precise claims information"
+            },
+            {
+              "Benefit":"Prescriptions",
+              "Coverage":"€20 x 5 prescriptions"
+            },
+            {
+              "Benefit":"Speech therapist",
+              "Coverage":"50% up to €35 x 12 combined visits - see table of cover footnotes for precise claims information"
+            }
+          ]
+        }
+      ],
+      "Description":null
+    },
+    {
+      "Icon":"https://yonderpublic.blob.core.windows.net/contentdelivery/Vector-other.svg", 
+      "Name":"Other Inpatient Benefits",
+      "Sections":[
+        {
+          "Name":null,
+          "SubSections":[
+            {
+              "Benefit":"Oncotype DX",
+              "Coverage":"Covered"
+            },
+            {
+              "Benefit":"Health in the Home",
+              "Coverage":"Covered with our provider partner"
+            },
+            {
+              "Benefit":"Care Connect",
+              "Coverage":"Covered (refer to membership handbook)"
+            },
+            {
+              "Benefit":"EXOGEN therapy",
+              "Coverage":"Covered with our provider partner"
+            },
+            {
+              "Benefit":"Post Operative Home Help",
+              "Coverage":"2 x 3 hour cleaning sessions"
+            },
+            {
+              "Benefit":"Convalescence benefits",
+              "Coverage":"€50 x 15 days"
+            },
+            {
+              "Benefit":"Child home nursing care",
+              "Coverage":"€100 x 14 days (following inpatient stay of minimum 5 days)"
+            },
+            {
+              "Benefit":"Parent accompanying child",
+              "Coverage":"€40 x 14 days (not payable for the first 3 days)"
+            },
+            {
+              "Benefit":"Cancer Support Benefit (for accommodation expenses when travelling more than 50km)",
+              "Coverage":"Up to €100 per day for up to a maximum of €1500 per calendar year"
+            },
+            {
+              "Benefit":"Gender Affirmation Benefit",
+              "Coverage":"50% up to €120,000 per lifetime"
+            },
+            {
+              "Benefit":"Genetic Testing: Initial consultation",
+              "Coverage":"50% cover"
+            },
+            {
+              "Benefit":"Genetic Testing: Test for specified genetic mutations",
+              "Coverage":"Covered in approved clinics with our approved consultant"
+            },
+            {
+              "Benefit":"Healthy Minds",
+              "Coverage":"Online access to mental health assessments and content and up to 6 counselling sessions via phone, chat, video or face to face"
+            },
+            {
+              "Benefit":"Mental Health Guide",
+              "Coverage":"Covered (refer to membership handbook)"
+            },
+            {
+              "Benefit":"Medicall ambulance costs",
+              "Coverage":"Covered (refer to membership handbook)"
+            },
+            {
+              "Benefit":"Genetic Testing for Cancer Treatment Options - Foundation One CDx",
+              "Coverage":"Covered"
+            }
+          ]
+        }
+      ],
+      "Description":null
+    }
+  ]
+}
