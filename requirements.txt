@@ -7,3 +7,4 @@ faiss-cpu==1.8.0
 python-dotenv==1.0.1
 pydantic==2.10.3
 fpdf2==2.7.9
+fpdf2==2.7.9

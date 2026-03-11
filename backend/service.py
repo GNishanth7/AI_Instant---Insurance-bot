@@ -376,11 +376,23 @@ class PolicyBackendService:
                 "input_mode": "text",
                 "input_context": "receipt",
             }
+        if step == "awaiting_amount_warning_confirmation":
+            return {
+                "quick_replies": ["Yes", "No"],
+                "input_mode": "text",
+                "input_context": "amount_limit_confirmation",
+            }
         if step == "awaiting_confirmation":
             return {
                 "quick_replies": ["Yes", "No"],
                 "input_mode": "text",
                 "input_context": "confirmation",
+            }
+        if step == "awaiting_email":
+            return {
+                "quick_replies": ["Cancel"],
+                "input_mode": "text",
+                "input_context": "email",
             }
         if step == "awaiting_date":
             return {

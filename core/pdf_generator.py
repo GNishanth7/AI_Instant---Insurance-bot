@@ -159,4 +159,4 @@ def _format_bool(value: Any) -> str:
 
 
 def _normalize_value(value: str) -> str:
-    return str(value).replace("€", "EUR ").replace("\u2014", "-")
+    return str(value).replace("\u20ac", "EUR ").replace("\u2014", "-")

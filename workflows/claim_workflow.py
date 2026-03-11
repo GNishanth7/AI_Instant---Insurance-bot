@@ -6,19 +6,21 @@ from datetime import datetime
 from typing import Any
 
 from config import CLAIM_INTENT_KEYWORDS
+from core.email_sender import infer_employee_name, send_claim_email
 from core.pdf_generator import generate_claim_pdf
 
 _DATE_PATTERN = re.compile(r"^\d{2}/\d{2}/\d{4}$")
+_EMAIL_PATTERN = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 _LIMIT_PATTERN = re.compile(
-    r"((?:EUR|€)\s*\d+(?:[.,]\d+)?\s*x\s*\d+(?:[.,]\d+)?(?:\s+[A-Za-z]+)?)",
+    r"((?:EUR|\u20ac)\s*\d+(?:[.,]\d+)?\s*x\s*\d+(?:[.,]\d+)?(?:\s+[A-Za-z]+)?)",
     re.IGNORECASE,
 )
 _SIMPLE_CAP_PATTERN = re.compile(
-    r"(?:up to\s*)?((?:EUR|€)\s*\d+(?:[.,]\d+)?)",
+    r"(?:up to\s*)?((?:EUR|\u20ac)\s*\d+(?:[.,]\d+)?)",
     re.IGNORECASE,
 )
 _MULTIPLIER_VALUE_PATTERN = re.compile(
-    r"(?:EUR|€)\s*(\d+(?:[.,]\d+)?)\s*x\s*(\d+(?:[.,]\d+)?)",
+    r"(?:EUR|\u20ac)\s*(\d+(?:[.,]\d+)?)\s*x\s*(\d+(?:[.,]\d+)?)",
     re.IGNORECASE,
 )
 _YES_WORDS = {"yes", "y"}
@@ -49,6 +51,8 @@ def initial_claim_state() -> dict[str, Any]:
             "plan_id": "",
             "amount_limit_eur": None,
             "amount_limit_label": "",
+            "email_address": "",
+            "email_sent_at": "",
             "pdf_file_path": "",
         },
     }
@@ -102,6 +106,8 @@ def handle_claim_turn(message, state, retriever, assistant) -> ClaimTurnResult:
         return _store_receipt(cleaned_message, state)
     if step == "awaiting_confirmation":
         return _confirm_claim_summary(cleaned_message, state)
+    if step == "awaiting_email":
+        return _store_email_and_send(cleaned_message, state)
 
     _reset_state(state)
     return ClaimTurnResult(message="Claim drafting was reset. Please start again.")
@@ -221,29 +227,10 @@ def _store_receipt(value: str, state) -> ClaimTurnResult:
 def _confirm_claim_summary(value: str, state) -> ClaimTurnResult:
     normalized = value.strip().lower()
     if normalized in _YES_WORDS:
-        summary = _claim_summary(state["data"])
-        try:
-            pdf_path = generate_claim_pdf(summary)
-            summary["pdf_file_path"] = str(pdf_path)
-        except Exception as exc:
-            return ClaimTurnResult(
-                message=(
-                    "I could not generate the PDF right now. "
-                    f"Error: {exc}"
-                ),
-                claim_summary=summary,
-                citation=summary["coverage_source"],
-            )
-
-        _reset_state(state)
+        state["step"] = "awaiting_email"
         return ClaimTurnResult(
-            message=(
-                "Your claim summary PDF is ready.\n"
-                f"Saved to: {summary['pdf_file_path']}\n"
-                "Attach your original receipt and submit it to your insurer."
-            ),
-            claim_summary=summary,
-            citation=summary["coverage_source"],
+            message="What is your email address? We will send your claim summary there.",
+            claim_summary=_claim_summary(state["data"]),
         )
 
     if normalized in _NO_WORDS:
@@ -251,6 +238,46 @@ def _confirm_claim_summary(value: str, state) -> ClaimTurnResult:
         return ClaimTurnResult(message="Claim drafting discarded. Start again when ready.")
 
     return ClaimTurnResult(message="Please reply YES to confirm or NO to discard the draft.")
+
+
+def _store_email_and_send(value: str, state) -> ClaimTurnResult:
+    cleaned_email = value.strip()
+    if not _EMAIL_PATTERN.fullmatch(cleaned_email):
+        return ClaimTurnResult(message="Please enter a valid email address.")
+
+    state["data"]["email_address"] = cleaned_email
+    state["data"]["email_sent_at"] = datetime.now().strftime("%d/%m/%Y %H:%M")
+    summary = _claim_summary(state["data"])
+
+    try:
+        pdf_path = generate_claim_pdf(summary)
+        summary["pdf_file_path"] = str(pdf_path)
+        send_claim_email(
+            recipient_email=cleaned_email,
+            employee_name=infer_employee_name(cleaned_email),
+            claim=summary,
+            pdf_file_path=pdf_path,
+        )
+    except Exception as exc:
+        return ClaimTurnResult(
+            message=(
+                "I generated the claim summary, but I could not send the email right now. "
+                f"Error: {exc}"
+            ),
+            claim_summary=summary,
+            citation=summary["coverage_source"],
+        )
+
+    _reset_state(state)
+    return ClaimTurnResult(
+        message=(
+            f"Your claim summary has been sent to {cleaned_email}.\n"
+            "Attach your original receipt and forward to your insurer.\n"
+            "Keep this email for your records."
+        ),
+        claim_summary=summary,
+        citation=summary["coverage_source"],
+    )
 
 
 def _claim_summary(data: dict[str, Any]) -> dict[str, Any]:
@@ -265,6 +292,8 @@ def _claim_summary(data: dict[str, Any]) -> dict[str, Any]:
         "plan_id": data.get("plan_id", ""),
         "amount_limit_eur": data.get("amount_limit_eur"),
         "amount_limit_label": data.get("amount_limit_label", ""),
+        "email_address": data.get("email_address", ""),
+        "email_sent_at": data.get("email_sent_at", ""),
         "pdf_file_path": data.get("pdf_file_path", ""),
     }
 
@@ -278,7 +307,16 @@ def _extract_amount_limit_eur(coverage_details: str) -> float | None:
 
     single_cap_match = _SIMPLE_CAP_PATTERN.search(coverage_details)
     if single_cap_match:
-        return round(float(single_cap_match.group(1).replace("EUR", "").replace("€", "").replace(",", "").strip()), 2)
+        return round(
+            float(
+                single_cap_match.group(1)
+                .replace("EUR", "")
+                .replace("\u20ac", "")
+                .replace(",", "")
+                .strip()
+            ),
+            2,
+        )
 
     return None
 
@@ -307,12 +345,12 @@ def _format_limit_reference(limit_eur: float, limit_label: str) -> str:
 
 def _format_chat_currency(value: float) -> str:
     if float(value).is_integer():
-        return f"€{value:,.0f}"
-    return f"€{value:,.2f}"
+        return f"EUR {value:,.0f}"
+    return f"EUR {value:,.2f}"
 
 
 def _clean_limit_label(value: str) -> str:
-    normalized = " ".join(value.replace("EUR", "€").split())
+    normalized = " ".join(value.replace("\u20ac", "EUR ").split())
     return normalized
 
 
